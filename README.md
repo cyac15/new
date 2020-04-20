@@ -1,7 +1,7 @@
 #  related experience
 
 **Machine Learning**
-1.  `ML_approaches.Rmd`[a link](https://github.com/cyac15/new/blob/master/ML_approaches.Rmd)
+1.  [`ML_approaches.Rmd`](https://github.com/cyac15/new/blob/master/ML_approaches.Rmd)
 2.  `ML_SVMmodels.Rmd`
 3.  `ML_trees.py`
 4.  `ML_kmean.py`
