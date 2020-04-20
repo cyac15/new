@@ -1,0 +1,90 @@
+---
+title: "compare different SVM models"
+date: "3/15/2020"
+output: pdf_document
+---
+
+## libraries
+```{r label = "loading libraries"}
+########## loading libraries ##########
+library(e1071)
+library(ggplot2)
+library(kernlab)  # ksvm
+library(caret)
+library(caTools)
+library(gridExtra)
+library(keras)
+install_keras()
+```
+
+## loading data
+```{r  label = "loading data"}
+########## loading data ##########
+
+#data <- read.csv("sample_submission.csv", header=T, sep=",")
+#test <- read.csv("test.csv", header=T, sep=",")
+data <- read.csv("train.csv", header=T, sep=",")
+# 1st col: label
+
+########## train & test set ##########
+set.seed(1234)
+ind = sample(2,nrow(data), replace=T, prob=c(0.7,0.3))
+# change the data type
+data$label <- factor(data$label)
+summary(data$label)
+training = data[ind==1, ]
+testing = data[ind==2, ]
+training_label = data[ind==1, 1]
+testing_label = data[ind==2, 1]
+```
+
+## Model Building & Evaluation
+
+## Linear Kernel
+```{r label = "SVM-linear"}
+########## Linear Kernel ##########
+## Linear kernel using default parameters
+
+model1_linear <- ksvm(label ~ ., data = training, scaled = FALSE, kernel = "vanilladot", 
+                      C = 1, cross = 5)
+print(model1_linear) 
+
+prediction1 <- predict(model1_linear, newdata = testing, type = "response")
+confusionMatrix(prediction1, testing$label) 
+```
+
+## Radial Kernel
+```{r label = "SVM-Radial"}
+########## Radial Kernel ##########
+# Radial kernel using default parameters
+model2_rbf <- ksvm(label ~ ., data = training, scaled = FALSE, kernel = "rbfdot",
+                   C = 1, kpar = "automatic", cross = 5)
+print(model2_rbf)
+
+prediction2 <- predict(model2_rbf, newdata = testing, type = "response")
+confusionMatrix(prediction2, testing$label)
+```
+
+## Polynomial Kernel
+```{r label = "SVM-Polynomial"}
+########## Polynomial Kernel ##########
+## Polynomial kernel with degree 2, default scale and offset
+model3_poly <- ksvm(label ~ ., data = training, kernel = "polydot", scaled = FALSE, 
+                    C = 1, cross = 5, kpar = list(degree = 2, scale = 1, offset = 1))
+print(model3_poly)
+
+prediction3 <- predict(model3_poly, newdata = testing)
+confusionMatrix(prediction3, testing$label)
+
+## Polynomial kernel with varied scale
+model4_poly <- ksvm(label ~ ., data = training, kernel = "polydot", scaled = FALSE, 
+                    C = 1, cross = 5,kpar = list(degree = 2, scale = -2, offset = 1))
+print(model4_poly)
+
+prediction4 <- predict(model4_poly, newdata = testing)
+confusionMatrix(prediction4, testing$label)
+```
+
+
+## Reference
+https://github.com/Srungeer-Simha/MNIST-digit-recognition-using-SVM/blob/master/MNIST%20digit%20recognition%20-%20SVM.R

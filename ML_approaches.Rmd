@@ -1,0 +1,176 @@
+---
+title: "ML approaches"
+date: "2/7/2020"
+output: pdf_document
+---
+
+
+## Problem 1
+
+```{r}
+dermatology <- read.csv("dermatology.csv", header = TRUE, sep = "\t")
+str(dermatology)
+dermatology$Age <- as.integer(dermatology$Age)
+```
+
+1. Let’s try determining the type of disease based on the patient’s Age. Use gradient descent (GD) to build your regression model (model1). Start by writing the GD algorithm and then implement it using a programming language of your choice.
+
+```{r}
+# Build a linear model
+model1 = lm(Disease~Age, data=dermatology)
+summary(model1)
+
+# Define "X", and "Y" for the gradient descent algorithm
+x <- as.matrix(dermatology[,34])
+y <- as.matrix(dermatology[,35])
+
+# Define the gradient descent function
+gradD <- function(x, y, alpha, epsilon){
+  iter <- 0
+  i <- 0
+  x <- cbind(rep(1,nrow(x)),x)
+  theta <- matrix(c(1,1),ncol(x),1)
+  cost <- t(x %*% theta - y) %*% (x %*% theta - y) 
+  # Can also multiply with constant (1/(2*nrow(x))) 
+  delta <- 1
+  while(delta > epsilon){
+    i <- i + 1
+    theta <- theta - alpha*(t(x) %*% (x %*% theta - y))
+    cval <- t(x %*% theta - y) %*% (x %*% theta - y)
+    cost <- append(cost, cval)
+    delta <- abs(cost[i+1] - cost[i])
+    if((cost[i+1] - cost[i]) > 0){
+      print("The cost is increasing. Try reducing alpha.")
+      return()
+    }
+    iter <- append(iter, i)
+  }
+  print(sprintf("Completed in %i iterations.", i))
+  return(theta)
+}
+
+# Using the gradient descent function in a scaled data 
+# stheta <- gradD(scale(x), y, alpha = 0.00000009, epsilon = 10^-10)
+stheta <- gradD(scale(x), y, alpha = 0.0000005, epsilon = 10^-10)
+stheta
+
+```
+
+2. Use random forest on the clinical as well as histopathological attributes to classify the disease type (model2).
+
+```{r}
+library(randomForest)
+model2 = randomForest(Disease ~., data =dermatology)
+model2
+```
+
+3. Use kNN on the clinical attributes and histopathological attributes to classify the disease type and report your accuracy (model3).
+
+```{r}
+sample = sample(2, nrow(dermatology), replace=TRUE, prob=c(0.7,0.3))
+dermatology.training = dermatology[sample==1, 1:34]
+dermatology.testing = dermatology[sample==2, 1:34]
+
+dermatology.trainingLabels = dermatology[sample==1,35]
+dermatology.testingLabels = dermatology[sample==2,35]
+
+library(class)
+dermatology_pred = knn(train=dermatology.training, test=dermatology.testing, cl=dermatology.trainingLabels, k=3)
+summary(dermatology_pred)
+
+#accuracy
+library(gmodels)
+CrossTable(x=dermatology_pred, y=dermatology.testingLabels, prop.chisq = FALSE)
+```
+
+4. Finally, use two different clustering algorithms and see how well these attributes can determine the disease type (model4 and model5).
+
+```{r}
+library(cluster)
+#agglomerative
+model4 = agnes(x=dermatology[,1:34], diss=FALSE, stand=TRUE, method="average")
+model4
+dendcluster = as.dendrogram(model4)
+plot(dendcluster)
+
+
+#divisive
+model5 = kmeans(dermatology[,1:34], 6, nstart=12)
+model5
+```
+
+Make sure to report your actual model for each of the above. Now, compare and contrast the five models you built. Having done both classification and clustering on the same dataset, what can you say about this data and/or the techniques you used? Write your thoughts in 2-3 paragraphs.
+
+```{r}
+library('dplyr')
+dermatology %>% group_by(Disease) %>% summarise_all(funs(mean))
+```
+Overall presentation [5 points]
+
+## Problem 2 [25 points]
+
+```{r}
+hatecrime <- read.csv("hatecrime.csv", header = TRUE, sep = ",")
+str(hatecrime)
+```
+
+1. How does income inequality relate to the number of hate crimes and hate incidents? 
+
+```{r}
+#regression
+library(tidyr)
+new_df <- hatecrime %>% drop_na(hate_crimes_per_100k_splc)
+new_df_1 <- new_df %>% drop_na(gini_index, median_household_income)
+
+# Build a linear model
+model2_1_1 = lm(hate_crimes_per_100k_splc~gini_index, data=new_df_1)
+summary(model2_1_1)
+
+# Define "X", and "Y" for the gradient descent algorithm
+x <- as.matrix(new_df_1[,8])
+y <- as.matrix(new_df_1[,11])
+
+# Using the gradient descent function in a scaled data 
+stheta <- gradD(scale(x), y, alpha =  0.00005 , epsilon = 10^-10)
+stheta
+```
+
+2. How can we predict the number of hate crimes and hate incidents from race/nature of the population?
+
+```{r}
+new_df$new <- new_df$hate_crimes_per_100k_splc + (new_df$avg_hatecrimes_per_100k_fbi)*10/365*6
+new_df_2 <- new_df %>% drop_na(share_non_citizen)
+
+# regression
+model2_2_1 = lm(hate_crimes_per_100k_splc ~ share_non_white, data=new_df_2)
+summary(model2_2_1)
+
+model2_2_2 = lm(new ~ share_non_white, data=new_df_2)
+summary(model2_2_2)
+
+# Define "X", and "Y" for the gradient descent algorithm
+# Maine, and 	Mississippi have null values in share_non_citizen
+x <- as.matrix(new_df_2[,9])
+y <- as.matrix(new_df_2[,13])
+
+# Using the gradient descent function in a scaled data 
+stheta <- gradD(scale(x), y, alpha =  0.00005 , epsilon = 10^-10)
+stheta
+```
+
+3. How does the number of hate crimes vary across states? Is there any similarity in number of hate incidents (per 100,000 people) between some states than in others — both according to the SPLC after the election and the FBI before it? 
+
+```{r}
+
+# cluster
+# divisive
+
+# hate_crimes_per_100k_splc + avg_hatecrimes_per_100k_fbi *10/365*6
+model2_3_1 = kmeans(new_df[,13], 3, nstart=25)
+model2_3_1
+
+# hate_crimes_per_100k_splc, avg_hatecrimes_per_100k_fbi
+model2_3_3 = kmeans(new_df[,c(11,12)], 3, nstart=25)
+model2_3_3
+
+```
