@@ -77,9 +77,9 @@ for key_object, obj in var_object.items():
         
         if key_object=="target_B_sourceA":
             plt.title("target_B SourceA tag trend")
-            plt.savefig(''+key_object+'_emotiontag', dpi=1000)
+            plt.savefig(''+key_object+'_tag', dpi=1000)
         elif key_object=="target_A_sourceA":
             plt.title("target_A SourceA tag trend")
-            plt.savefig(''+key_object+'_emotiontag', dpi=1000)
+            plt.savefig(''+key_object+'_tag', dpi=1000)
              
         
