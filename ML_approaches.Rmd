@@ -107,7 +107,7 @@ dermatology %>% group_by(Disease) %>% summarise_all(funs(mean))
 ```
 Overall presentation [5 points]
 
-## Problem 2 [25 points]
+## Problem 2
 
 ```{r}
 hatecrime <- read.csv("hatecrime.csv", header = TRUE, sep = ",")
