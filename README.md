@@ -2,7 +2,7 @@
 
 **Machine Learning**
 1.  [`ML_approaches.Rmd`](https://github.com/cyac15/new/blob/master/ML_approaches.Rmd)
-2.  [`ML_SVMmodels.Rmd`](https://github.com/cyac15/new/blob/master/ML_SVMmodels.Rmd)
+2.  [`ML_SVMmodels.Rmd`](https://github.com/cyac15/new/blob/master/ML_SVMmodels.Rmd)
 3.  [`ML_trees.py`](https://github.com/cyac15/new/blob/master/ML_trees.py)
 4.  [`ML_kmean.py`](https://github.com/cyac15/new/blob/master/ML_kmean.py)
 
